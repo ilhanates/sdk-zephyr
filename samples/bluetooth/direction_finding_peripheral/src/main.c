@@ -28,49 +28,7 @@ static const struct bt_data ad[] = {
 	BT_DATA_BYTES(BT_DATA_LE_SUPPORTED_FEATURES, BT_LE_SUPP_FEAT_24_ENCODE(DF_FEAT_ENABLED)),
 };
 
-/* Latency set to zero, to enforce PDU exchange every connection event */
-#define CONN_LATENCY 0U
-/* Interval used to run CTE request procedure periodically.
- * Value is a number of connection events.
- */
-#define CTE_REQ_INTERVAL (CONN_LATENCY + 10U)
-/* Length of CTE in unit of 8 us */
-#define CTE_LEN (0x14U)
-
-#if defined(CONFIG_BT_DF_CTE_TX_AOD)
-static const uint8_t ant_patterns[] = { 0x2, 0x0, 0x5, 0x6, 0x1, 0x4, 0xC, 0x9, 0xE, 0xD, 0x8 };
-#endif /* CONFIG_BT_DF_CTE_TX_AOD */
-
-static void enable_cte_response(struct bt_conn *conn)
-{
-	int err;
-
-	const struct bt_df_conn_cte_tx_param cte_tx_params = {
-#if defined(CONFIG_BT_DF_CTE_TX_AOD)
-		.cte_types = BT_DF_CTE_TYPE_ALL,
-		.num_ant_ids = ARRAY_SIZE(ant_patterns),
-		.ant_ids = ant_patterns,
-#else
-		.cte_types = BT_DF_CTE_TYPE_AOA,
-#endif /* CONFIG_BT_DF_CTE_TX_AOD */
-	};
-
-	printk("Set CTE transmission params...");
-	err = bt_df_set_conn_cte_tx_param(conn, &cte_tx_params);
-	if (err) {
-		printk("failed (err %d)\n", err);
-		return;
-	}
-	printk("success.\n");
-
-	printk("Set CTE response enable...");
-	err = bt_df_conn_cte_rsp_enable(conn);
-	if (err) {
-		printk("failed (err %d).\n", err);
-		return;
-	}
-	printk("success.\n");
-}
+static void bt_ready(void);
 
 static void connected(struct bt_conn *conn, uint8_t err)
 {
@@ -79,13 +37,12 @@ static void connected(struct bt_conn *conn, uint8_t err)
 	} else {
 		printk("Connected\n");
 	}
-
-	enable_cte_response(conn);
 }
 
 static void disconnected(struct bt_conn *conn, uint8_t reason)
 {
 	printk("Disconnected (reason 0x%02x)\n", reason);
+	bt_ready();
 }
 
 BT_CONN_CB_DEFINE(conn_callbacks) = {
@@ -96,8 +53,6 @@ BT_CONN_CB_DEFINE(conn_callbacks) = {
 static void bt_ready(void)
 {
 	int err;
-
-	printk("Bluetooth initialized\n");
 
 	err = bt_le_adv_start(BT_LE_ADV_CONN_NAME, ad, ARRAY_SIZE(ad), NULL, 0);
 	if (err) {
@@ -117,6 +72,8 @@ void main(void)
 		printk("Bluetooth init failed (err %d)\n", err);
 		return;
 	}
+
+	printk("Bluetooth initialized\n");
 
 	bt_ready();
 }
