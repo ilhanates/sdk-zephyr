@@ -4044,13 +4044,22 @@ bool bt_att_chan_opt_valid(struct bt_conn *conn, enum bt_att_chan_opt chan_opt)
 	if ((chan_opt & (BT_ATT_CHAN_OPT_ENHANCED_ONLY | BT_ATT_CHAN_OPT_UNENHANCED_ONLY)) ==
 	    (BT_ATT_CHAN_OPT_ENHANCED_ONLY | BT_ATT_CHAN_OPT_UNENHANCED_ONLY)) {
 		/* Enhanced and Unenhanced are mutually exclusive */
+		printk("chan_opt:%d \n", chan_opt);
 		return false;
 	}
 
 	/* Choosing EATT requires EATT channels connected and encryption enabled */
 	if (chan_opt & BT_ATT_CHAN_OPT_ENHANCED_ONLY) {
-		return (bt_conn_get_security(conn) > BT_SECURITY_L1) &&
-		       !bt_att_fixed_chan_only(conn);
+		bt_security_t level = bt_conn_get_security(conn);
+		int is_att_fixed_chan_only = bt_att_fixed_chan_only(conn);
+
+		if (((level > BT_SECURITY_L1) && !is_att_fixed_chan_only) == false) {
+			printk("bt_att_chan_opt_valid1 level:%d is_att_fixed_chan_only:%d\n", level, is_att_fixed_chan_only);
+			k_sleep(K_MSEC(20));
+			printk("bt_att_chan_opt_valid2 is_att_fixed_chan_only:%d\n", bt_att_fixed_chan_only(conn));
+		}
+		return (level > BT_SECURITY_L1) &&
+		       !is_att_fixed_chan_only;
 	}
 
 	return true;

@@ -2552,6 +2552,7 @@ static int gatt_req_send(struct bt_conn *conn, bt_att_func_t func, void *params,
 
 	if (IS_ENABLED(CONFIG_BT_EATT) &&
 	    !bt_att_chan_opt_valid(conn, chan_opt)) {
+		printk("gatt_req_send bt_att_chan_opt_valid failed!\n");
 		return -EINVAL;
 	}
 
@@ -2572,12 +2573,14 @@ static int gatt_req_send(struct bt_conn *conn, bt_att_func_t func, void *params,
 
 	err = encode(buf, len, params);
 	if (err) {
+		printk("gatt_req_send encode failed!\n");
 		bt_att_req_free(req);
 		return err;
 	}
 
 	err = bt_att_req_send(conn, req);
 	if (err) {
+		printk("gatt_req_send bt_att_req_send failed!\n");
 		bt_att_req_free(req);
 	}
 
