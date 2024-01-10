@@ -1537,6 +1537,8 @@ int bt_le_scan_start(const struct bt_le_scan_param *param, bt_le_scan_cb_t cb)
 
 	scan_dev_found_cb = cb;
 
+	printk("bt_le_scan_start T:%d\n", k_uptime_get_32());
+
 	return 0;
 }
 
@@ -1558,7 +1560,10 @@ int bt_le_scan_stop(void)
 #endif
 	}
 
-	return bt_le_scan_update(false);
+	int ret = bt_le_scan_update(false);
+	printk("bt_le_scan_stop T:%d\n", k_uptime_get_32());
+
+	return ret;
 }
 
 void bt_le_scan_cb_register(struct bt_le_scan_cb *cb)

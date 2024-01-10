@@ -1377,7 +1377,7 @@ int bt_le_adv_start(const struct bt_le_adv_param *param,
 		k_work_reschedule(&adv->lim_adv_timeout_work,
 				  K_SECONDS(CONFIG_BT_LIM_ADV_TIMEOUT));
 	}
-
+	printk("bt_le_adv_start T:%d\n", k_uptime_get_32());
 	return err;
 }
 
